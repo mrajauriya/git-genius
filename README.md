@@ -1,64 +1,102 @@
-# ✨ Git Genius v3.7 – Beautiful Developer-Focused GitHub CLI Helper
+<h1 align="center">✨ Git Genius v3.7 ✨</h1>
 
-![GitHub](https://img.shields.io/github/license/moHaN-ShaArmA/git-genius?style=flat-square)
-![Bash](https://img.shields.io/badge/made%20with-Bash-blue?style=flat-square)
-![GitHub stars](https://img.shields.io/github/stars/moHaN-ShaArmA/git-genius?style=flat-square)
-
-> **Smart Git Automation for Android Termux & AndroidIDE**  
-> *Crafted with ♥ by [moHaN-ShaArmA](https://github.com/moHaN-ShaArmA)*
+<p align="center">
+  <b>A Beautiful, Developer-Focused GitHub Helper CLI Tool</b><br>
+  <i>Crafted with ❤️ by <a href="https://github.com/moHaN-ShaArmA">moHaN-ShaArmA</a></i>
+</p>
 
 ---
 
-## 🚀 About
+## 🚀 What is Git Genius?
 
-**Git Genius v3.7** is a beautiful, terminal-based GitHub CLI helper made especially for Android developers using Termux or AndroidIDE. It automates Git workflows, provides a visually pleasing GUI-like interface, and saves time with configuration memory, secure token handling, and one-command interactions.
+**Git Genius v3.7** is a powerful Bash-based Terminal GUI for GitHub actions on Android (Termux/AndroidIDE).  
+It simplifies your Git workflow with vibrant UI, emojis, and quick command access — tailored for mobile devs, on-the-go coders, and terminal geeks.
 
 ---
 
 ## ✨ Features
 
-| Feature                     | Description                                                                 |
-|----------------------------|-----------------------------------------------------------------------------|
-| 🔼 **Push Changes**         | Automatically stage, commit, and push to your GitHub repo with auth         |
-| 🔽 **Pull Latest**          | Fetch and merge the latest changes from remote                              |
-| 🔍 **View Status**          | See uncommitted changes and Git status                                      |
-| 📝 **View Log**             | Beautifully formatted commit log (graph + decorations)                      |
-| 🧾 **View Diff**            | See file differences before committing                                      |
-| 🌿 **Switch/Create Branch** | Seamlessly switch or create branches and save the default                   |
-| 📦 **Generate .gitignore**  | Auto-create a basic `.gitignore` file for Android projects                  |
-| 👀 **View File History**    | View commit history of any file using `git log --follow`                    |
-| 🔗 **Show Remote URL**      | Display your current GitHub repo remote URL                                 |
-| ⚙ **Settings**              | Update user config, token, branch, or remote any time                       |
-| ❓ **Help**                 | Understand every option in a clean format                                   |
-| ✅ **Git Auto-Installer**   | Automatically installs `git` if not found on your system                    |
+- 🔧 **Initial setup** (GitHub name, email, PAT token, remote, branch)
+- 🔼 **Push changes** (add → commit → push in 1 click!)
+- 🔽 **Pull latest** changes from GitHub
+- 🔍 **View status** of your repo
+- 📝 **View log** as graph
+- 🧾 **View diff** for current changes
+- 🌿 **Switch or create branches**
+- 📦 **Auto-generate `.gitignore`** (for Android)
+- 👀 **File-specific commit history**
+- 🔗 **Show your remote URL**
+- ⚙️ **Settings** to edit name/email/token/branch/remote
+- ❓ **Help menu**
+- ✨ **Colorful and user-friendly interface**
+- ✅ **Works offline after initial setup**
 
 ---
 
-## ⚙️ Setup
+## ⚙️ Requirements
 
-Just run the script once, and Git Genius will:
-1. Ask for your **GitHub username** and **email**
-2. Securely store your **Personal Access Token (PAT)**
-3. Initialize Git if needed
-4. Ask for your **default branch** (main/master/etc.)
-5. Add or update your **remote origin**
-
-> All configs are securely saved inside `~/.git-*` files for reuse.
+- Android device with [Termux](https://f-droid.org/packages/com.termux/) or [AndroidIDE](https://github.com/itsaky/androidide)
+- Internet connection (only for initial setup and sync)
+- Git installed (auto-checked and installed if missing)
 
 ---
 
-## 🧪 Requirements
+## 🛠️ Script Capabilities
 
-- Android with **Termux** or **AndroidIDE**
-- Internet connection
-- A GitHub **PAT (Personal Access Token)**
-- Bash shell
-
-> Git Genius will auto-install `git` if it's not already available.
+- 🔧 Initial Configuration: Name, Email, Token, Branch, Remote  
+- 🔼 Push Changes: Stage → Commit → Push to GitHub  
+- 🔽 Pull Latest: Fast-forward latest branch  
+- 🧾 Diff & Logs: Visual Git insights  
+- 🌿 Branch Manager: Create/Switch/Track  
+- ⚙ Settings Panel: Edit any saved value  
 
 ---
 
-## ▶️ How to Use
+## 🖼️ Preview
 
-```bash
-bash git-genius.sh
+<p align="center">
+  <img src="screenshots/1.png" width="800">
+  <br><i>✨ Menu UI - Clean and beautiful</i>
+</p>
+
+<p align="center">
+  <img src="screenshots/2.png" width="800">
+  <br><i>⚙ Settings menu - Fully editable values</i>
+</p>
+
+---
+
+## ✍️ Developer
+
+Made with passion by [moHaN-ShaArmA](https://github.com/moHaN-ShaArmA)  
+If you liked it, ⭐ star the repo and share with fellow devs!
+
+---
+
+## 📄 License
+
+MIT License  
+
+Copyright (c) 2025 moHaN-ShaArmA
+
+Permission is hereby granted, free of charge, to any person obtaining a copy  
+of this software and associated documentation files (the "Software"), to deal  
+in the Software without restriction, including without limitation the rights  
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+copies of the Software, and to permit persons to whom the Software is  
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in  
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  
+SOFTWARE.
+
+---
+
+> Made with love for the open source community. Stay genius!
