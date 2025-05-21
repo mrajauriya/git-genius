@@ -1,4 +1,4 @@
-#!/data/data/com.itsaky.androidide/files/usr/bin/bash
+#!/bin/bash
 
 # Git Genius v3.8 – Beautiful Developer-Focused GitHub Helper CLI
 
