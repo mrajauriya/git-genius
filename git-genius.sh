@@ -242,7 +242,7 @@ while true; do
         "⚙ Settings") settings_menu ;;
         "🔐 Reauthenticate") reauthenticate_token ;;
         "❓ Help") show_help ;;
-        "❌ Exit") echo -e "${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}{NC}"; exit 0 ;;
+        "❌ Exit") echo -e "${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}"; exit 0 ;;
     esac
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     sleep 1
