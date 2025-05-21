@@ -1,4 +1,4 @@
-<h1 align="center">✨ Git Genius v4.3 ✨</h1>
+<h1 align="center">✨ Git Genius v4.4 ✨</h1>
 
 <p align="center">
   <b>A Beautiful, Developer-Focused GitHub Helper CLI Tool</b><br>
