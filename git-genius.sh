@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Git Genius v4.3 – Beautiful Developer-Focused GitHub Helper CLI
+# Git Genius v4.4 – Beautiful Developer-Focused GitHub Helper CLI
 
 CONFIG_FILE="$HOME/.gitquickconfig"
 TOKEN_FILE="$HOME/.git-token"
@@ -16,7 +16,7 @@ BLUE="\033[1;34m"
 MAGENTA="\033[1;35m"
 NC="\033[0m"
 
-trap 'echo -e "\n${YELLOW}👋 Exiting Git Genius. Goodbye! Stay awesome!${NC}"; exit 0' SIGINT
+trap 'echo -e "\n${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}"; exit 0' SIGINT
 
 ensure_git_installed() {
     if ! command -v git >/dev/null 2>&1; then
@@ -35,7 +35,7 @@ ensure_git_installed() {
 
 show_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo -e "  ${CYAN}✨ GitHub Helper - Terminal GUI v4.3 ✨${BLUE}"
+    echo -e "  ${CYAN}✨ GitHub Helper - Terminal GUI v4.4 ✨${BLUE}"
     echo -e "     ${MAGENTA}Crafted with ♥ by moHaN-ShaArmA${BLUE}"
     echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
@@ -69,11 +69,21 @@ validate_git_repo_directory() {
     if [ -f "$REMOTE_FILE" ]; then
         CONFIGURED_REMOTE=$(cat "$REMOTE_FILE")
         ACTUAL_REMOTE=$(git remote get-url origin 2>/dev/null)
-        if [ "$CONFIGURED_REMOTE" != "$ACTUAL_REMOTE" ]; then
+
+        REPO_NAME=$(basename -s .git "$CONFIGURED_REMOTE")
+        CURRENT_DIR_NAME=$(basename "$PWD")
+
+        if [[ "$CONFIGURED_REMOTE" != "$ACTUAL_REMOTE" ]]; then
             echo -e "${RED}⚠ Remote URL mismatch!${NC}"
             echo -e "Expected: $CONFIGURED_REMOTE"
             echo -e "Found:    $ACTUAL_REMOTE"
             echo -e "${YELLOW}💡 Tip: Run '⚙ Settings' to update the remote URL.${NC}"
+            exit 1
+        elif [[ "$CURRENT_DIR_NAME" != "$REPO_NAME" ]]; then
+            echo -e "${RED}⚠ Directory name doesn't match the repository name!${NC}"
+            echo -e "Expected directory: ${GREEN}$REPO_NAME${NC}"
+            echo -e "Current directory:  ${RED}$CURRENT_DIR_NAME${NC}"
+            echo -e "${YELLOW}💡 Tip: Make sure you’re in the folder named after your repo.${NC}"
             exit 1
         fi
     fi
@@ -102,18 +112,11 @@ initialize_git_settings() {
 }
 
 OPTIONS=(
-    "🔼 Push Changes"
-    "🔽 Pull Latest"
-    "🔍 View Status"
-    "📝 View Log"
-    "🧾 View Diff"
-    "🌿 Switch/Create Branch"
-    "📦 Generate .gitignore"
-    "👀 View File History"
-    "🔗 Show Remote URL"
-    "⚙ Settings"
-    "❓ Help"
-    "❌ Exit"
+    "🔼 Push Changes" "🔽 Pull Latest" "🔍 View Status"
+    "📝 View Log" "🧾 View Diff" "🌿 Switch/Create Branch"
+    "📦 Generate .gitignore" "👀 View File History"
+    "🔗 Show Remote URL" "⚙ Settings"
+    "🔐 Reauthenticate" "❓ Help" "❌ Exit"
 )
 
 show_menu() {
@@ -126,69 +129,55 @@ show_menu() {
 }
 
 settings_menu() {
-    show_subheading "⚙ Settings"
-    echo -e "${CYAN}🔧 What would you like to change?${NC}"
+    echo -e "${MAGENTA}⚙ Settings:${NC}"
     echo "  [1] ✏️  Change Username & Email"
     echo "  [2] 🔐 Change Token"
     echo "  [3] 🌿 Change Default Branch"
     echo "  [4] 🔗 Change Remote URL"
-    echo "  [5] 🔙 Back to Menu"
+    echo "  [5] 🔙 Back"
     read -p "👉 Select option: " SET_CHOICE
-
     case $SET_CHOICE in
-        1)
-            read -p "👤 New Username: " NEW_USER
-            read -p "✉️  New Email: " NEW_EMAIL
-            git config --global user.name "$NEW_USER"
-            git config --global user.email "$NEW_EMAIL"
-            echo "username=$NEW_USER" > "$CONFIG_FILE"
-            echo "email=$NEW_EMAIL" >> "$CONFIG_FILE"
-            echo -e "${GREEN}✔ Updated username and email.${NC}"
-            ;;
-        2)
-            echo -e "${CYAN}🔑 Enter new token:${NC}"
-            read -s NEW_TOKEN
-            echo "$NEW_TOKEN" > "$TOKEN_FILE"
-            chmod 600 "$TOKEN_FILE"
-            echo -e "${GREEN}✔ Token updated.${NC}"
-            ;;
-        3)
-            read -p "🌿 New branch: " NEW_BRANCH
-            echo "$NEW_BRANCH" > "$BRANCH_FILE"
-            echo -e "${GREEN}✔ Branch updated.${NC}"
-            ;;
-        4)
-            read -p "🔗 New remote URL: " NEW_REMOTE
-            if git remote get-url origin >/dev/null 2>&1; then
-                git remote set-url origin "$NEW_REMOTE"
-            else
-                git remote add origin "$NEW_REMOTE"
-            fi
-            echo "$NEW_REMOTE" > "$REMOTE_FILE"
-            echo -e "${GREEN}✔ Remote URL updated.${NC}"
-            ;;
-        *) echo -e "${YELLOW}🔙 Back to menu...${NC}" ;;
+        1) read -p "👤 Username: " U; read -p "✉️ Email: " E
+           git config --global user.name "$U"
+           git config --global user.email "$E"
+           echo "username=$U" > "$CONFIG_FILE"
+           echo "email=$E" >> "$CONFIG_FILE"
+           ;;
+        2) read -s -p "🔐 New Token: " T; echo "$T" > "$TOKEN_FILE"; chmod 600 "$TOKEN_FILE";;
+        3) read -p "🌿 Branch: " B; echo "$B" > "$BRANCH_FILE";;
+        4) read -p "🔗 Remote URL: " R
+           git remote set-url origin "$R" || git remote add origin "$R"
+           echo "$R" > "$REMOTE_FILE";;
     esac
 }
 
 show_help() {
-    show_subheading "❓ Help"
-    echo -e "${GREEN}🔼 Push:${NC} Stage, commit, and push changes."
-    echo -e "${GREEN}🔽 Pull:${NC} Fetch and merge latest changes."
-    echo -e "${GREEN}🔍 Status:${NC} See what's changed."
-    echo -e "${GREEN}📝 Log:${NC} View commit history."
-    echo -e "${GREEN}🧾 Diff:${NC} View uncommitted changes."
-    echo -e "${GREEN}🌿 Branch:${NC} Switch or create branches."
-    echo -e "${GREEN}📦 .gitignore:${NC} Generate standard ignore rules."
-    echo -e "${GREEN}👀 History:${NC} File-level commit history."
-    echo -e "${GREEN}🔗 URL:${NC} Show the current Git remote URL."
-    echo -e "${GREEN}⚙ Settings:${NC} Update user, branch, token, remote."
-    echo -e "${GREEN}❌ Exit:${NC} Quit the helper tool."
+    echo -e "${MAGENTA}❓ Git Genius Help:${NC}"
+    echo -e "${GREEN}Push:${NC} Stage, commit, and push your changes"
+    echo -e "${GREEN}Pull:${NC} Fetch and merge from origin"
+    echo -e "${GREEN}Status:${NC} Shows current working directory status"
+    echo -e "${GREEN}Log:${NC} View commit history (pretty graph)"
+    echo -e "${GREEN}Diff:${NC} Show uncommitted changes"
+    echo -e "${GREEN}Branch:${NC} Switch or create branches"
+    echo -e "${GREEN}.gitignore:${NC} Generates ignore rules"
+    echo -e "${GREEN}File History:${NC} Shows file's commit history"
+    echo -e "${GREEN}Remote URL:${NC} Show current origin URL"
+    echo -e "${GREEN}Settings:${NC} Update config, token, branch, remote"
+    echo -e "${GREEN}Reauth:${NC} Shortcut to re-enter token only"
 }
 
-# Core Execution
+reauthenticate_token() {
+    echo -e "${CYAN}🔐 Enter GitHub Token:${NC}"
+    read -s NEW_TOKEN
+    echo "$NEW_TOKEN" > "$TOKEN_FILE"
+    chmod 600 "$TOKEN_FILE"
+    echo -e "${GREEN}✔ Token updated.${NC}"
+}
+
+# Core Flow
 show_header
 ensure_git_installed
+check_internet
 [ ! -f "$CONFIG_FILE" ] && setup_config
 validate_git_repo_directory
 initialize_git_settings
@@ -197,95 +186,47 @@ while true; do
     show_menu
     case "$OPERATION" in
         "🔼 Push Changes")
-            show_subheading "🔼 Push Changes"
             git add .
-            if git diff --cached --quiet && git diff --quiet; then
-                echo -e "${YELLOW}⚠️  Nothing to commit!${NC}"
-            else
+            git diff --cached --quiet && git diff --quiet && {
+                echo -e "${YELLOW}⚠ Nothing to commit.${NC}"
+            } || {
                 git status -s
                 read -p "✏️  Commit message: " MSG
                 git commit -m "$MSG"
                 git remote set-url origin "$AUTH_REMOTE"
-                git push origin HEAD:"$BRANCH" && echo -e "${GREEN}✔ Pushed to $BRANCH.${NC}" || echo -e "${RED}✘ Push failed.${NC}"
+                git push origin HEAD:"$BRANCH" && echo -e "${GREEN}✔ Push success.${NC}" || echo -e "${RED}✘ Push failed.${NC}"
                 git remote set-url origin "$REMOTE_URL"
-            fi
-            pause_and_continue
+            }
             ;;
         "🔽 Pull Latest")
-            show_subheading "🔽 Pull Latest"
             git remote set-url origin "$AUTH_REMOTE"
-            git pull origin "$BRANCH" && echo -e "${GREEN}✔ Pulled successfully.${NC}" || echo -e "${RED}✘ Pull failed.${NC}"
+            git pull origin "$BRANCH" && echo -e "${GREEN}✔ Pull success.${NC}" || echo -e "${RED}✘ Pull failed.${NC}"
             git remote set-url origin "$REMOTE_URL"
-            pause_and_continue
             ;;
-        "🔍 View Status")
-            show_subheading "🔍 Git Status"
-            git status
-            pause_and_continue
-            ;;
-        "📝 View Log")
-            show_subheading "📝 Git Log"
-            if git rev-parse --verify HEAD >/dev/null 2>&1; then
-                git log --oneline --graph --decorate -n 10
-            else
-                echo -e "${YELLOW}⚠️ No commits yet on this branch.${NC}"
-            fi
-            pause_and_continue
-            ;;
-        "🧾 View Diff")
-            show_subheading "🧾 Git Diff"
-            if git rev-parse --verify HEAD >/dev/null 2>&1; then
-                git diff
-            else
-                echo -e "${YELLOW}⚠️ No commits yet to diff against.${NC}"
-            fi
-            pause_and_continue
-            ;;
+        "🔍 View Status") git status ;;
+        "📝 View Log") git log --oneline --graph --decorate -n 10 ;;
+        "🧾 View Diff") git diff ;;
         "🌿 Switch/Create Branch")
-            show_subheading "🌿 Branch Management"
             git branch
-            read -p "🌱 Branch name to switch/create: " BR
-            git checkout -B "$BR"
-            echo "$BR" > "$BRANCH_FILE"
-            echo -e "${GREEN}✔ Now on branch '$BR'.${NC}"
-            pause_and_continue
+            read -p "🌱 Branch name: " B
+            git checkout -B "$B"
+            echo "$B" > "$BRANCH_FILE"
             ;;
         "📦 Generate .gitignore")
-            show_subheading "📦 Generating .gitignore"
             echo -e "# Android .gitignore\n*.iml\n.gradle/\nbuild/\n.idea/" > .gitignore
-            echo -e "${GREEN}✔ .gitignore created/updated.${NC}"
-            pause_and_continue
+            echo -e "${GREEN}✔ .gitignore updated.${NC}"
             ;;
         "👀 View File History")
-            show_subheading "👀 File Commit History"
-            read -p "📄 Enter file path: " FILE
-            if [ -f "$FILE" ]; then
-                git log --follow -- "$FILE"
-            else
-                echo -e "${RED}✘ File not found.${NC}"
-            fi
-            pause_and_continue
+            read -p "📄 File path: " FILE
+            [ -f "$FILE" ] && git log --follow "$FILE" || echo -e "${RED}✘ File not found.${NC}"
             ;;
-        "🔗 Show Remote URL")
-            show_subheading "🔗 Remote Repository URL"
-            echo -e "${CYAN}Remote origin:${NC} $REMOTE_URL"
-            pause_and_continue
-            ;;
-        "⚙ Settings")
-            settings_menu
-            pause_and_continue
-            ;;
-        "❓ Help")
-            show_help
-            pause_and_continue
-            ;;
-        "❌ Exit")
-            echo -e "${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}❗ Invalid selection. Please try again.${NC}"
-            pause_and_continue
-            ;;
+        "🔗 Show Remote URL") echo -e "${CYAN}Remote:${NC} $REMOTE_URL" ;;
+        "⚙ Settings") settings_menu ;;
+        "🔐 Reauthenticate") reauthenticate_token ;;
+        "❓ Help") show_help ;;
+        "❌ Exit") echo -e "${YELLOW}👋 Bye!${NC}"; exit 0 ;;
+        *) echo -e "${RED}❗ Invalid selection.${NC}" ;;
     esac
+    echo -e "${YELLOW}⏳ Returning to menu...${NC}"
+    sleep 1
 done
