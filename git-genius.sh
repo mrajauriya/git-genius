@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Git Genius v4.4 – Beautiful Developer-Focused GitHub Helper CLI
+# Git Genius v4.5 – Beautiful Developer-Focused GitHub Helper CLI
 
 CONFIG_FILE="$HOME/.gitquickconfig"
 TOKEN_FILE="$HOME/.git-token"
 BRANCH_FILE="$HOME/.git-branch"
 REMOTE_FILE="$HOME/.git-remote"
+VERSION="v4.5"
 
 # Colors
 GREEN="\033[1;32m"
@@ -19,12 +20,12 @@ NC="\033[0m"
 trap 'echo -e "\n${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}"; exit 0' SIGINT
 
 ensure_git_installed() {
-    if ! command -v git >/dev/null 2>&1; then
+    if ! command -v git &> /dev/null; then
         echo -e "${RED}❌ Git is not installed!${NC}"
         echo -e "${YELLOW}📦 Installing Git...${NC}"
-        if command -v pkg >/dev/null 2>&1; then
+        if command -v pkg &> /dev/null; then
             pkg install git -y
-        elif command -v apt >/dev/null 2>&1; then
+        elif command -v apt &> /dev/null; then
             sudo apt update && sudo apt install git -y
         else
             echo -e "${RED}⚠ Unsupported package manager. Please install Git manually.${NC}"
@@ -33,15 +34,19 @@ ensure_git_installed() {
     fi
 }
 
+check_internet() {
+    curl -s https://github.com &> /dev/null || {
+        echo -e "${RED}❌ No internet connection!${NC}"
+        exit 1
+    }
+}
+
 show_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo -e "  ${CYAN}✨ GitHub Helper - Terminal GUI v4.4 ✨${BLUE}"
+    echo -e "  ${CYAN}✨ GitHub Helper - Terminal GUI $VERSION ✨${BLUE}"
     echo -e "     ${MAGENTA}Crafted with ♥ by moHaN-ShaArmA${BLUE}"
     echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
-
-show_subheading() { echo -e "\n${MAGENTA}==> $1 ${NC}"; }
-pause_and_continue() { echo -e "${YELLOW}⏳ Returning to menu in 2 seconds...${NC}"; sleep 2; }
 
 setup_config() {
     echo -e "${YELLOW}⚙ Initial Configuration:${NC}"
@@ -95,7 +100,8 @@ initialize_git_settings() {
     BRANCH=$(cat "$BRANCH_FILE" 2>/dev/null)
 
     [ -z "$BRANCH" ] && {
-        read -p "🌿 Default branch name (main/master/custom): " BRANCH
+        DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}')
+        BRANCH=${DEFAULT_BRANCH:-main}
         echo "$BRANCH" > "$BRANCH_FILE"
     }
 
@@ -125,7 +131,13 @@ show_menu() {
         echo "  [$((i + 1))] ${OPTIONS[$i]}"
     done
     read -p "👉 Your choice (1-${#OPTIONS[@]}): " CHOICE
-    OPERATION="${OPTIONS[$((CHOICE - 1))]}"
+    if [[ "$CHOICE" =~ ^[0-9]+$ && "$CHOICE" -ge 1 && "$CHOICE" -le ${#OPTIONS[@]} ]]; then
+        OPERATION="${OPTIONS[$((CHOICE - 1))]}"
+    else
+        echo -e "${RED}❗ Invalid selection. Try again.${NC}"
+        sleep 1
+        show_menu
+    fi
 }
 
 settings_menu() {
@@ -174,13 +186,18 @@ reauthenticate_token() {
     echo -e "${GREEN}✔ Token updated.${NC}"
 }
 
-# Core Flow
+# --- CORE FLOW ---
+
 show_header
+echo -e "${YELLOW}⚡ Version: $VERSION | Checking dependencies...${NC}"
 ensure_git_installed
 check_internet
 [ ! -f "$CONFIG_FILE" ] && setup_config
 validate_git_repo_directory
 initialize_git_settings
+
+LAST_COMMIT=$(git log -1 --pretty=format:"%h - %s by %an")
+echo -e "${MAGENTA}🔂 Last Commit:${NC} $LAST_COMMIT"
 
 while true; do
     show_menu
@@ -205,7 +222,7 @@ while true; do
             ;;
         "🔍 View Status") git status ;;
         "📝 View Log") git log --oneline --graph --decorate -n 10 ;;
-        "🧾 View Diff") git diff ;;
+        "🧾 View Diff") git diff | less ;;
         "🌿 Switch/Create Branch")
             git branch
             read -p "🌱 Branch name: " B
@@ -213,7 +230,8 @@ while true; do
             echo "$B" > "$BRANCH_FILE"
             ;;
         "📦 Generate .gitignore")
-            echo -e "# Android .gitignore\n*.iml\n.gradle/\nbuild/\n.idea/" > .gitignore
+            [ -f .gitignore ] && cp .gitignore .gitignore.bak
+            echo -e "# .gitignore\n*.iml\n.gradle/\nbuild/\n.idea/\n*.log\n.DS_Store\n.env" > .gitignore
             echo -e "${GREEN}✔ .gitignore updated.${NC}"
             ;;
         "👀 View File History")
@@ -224,9 +242,8 @@ while true; do
         "⚙ Settings") settings_menu ;;
         "🔐 Reauthenticate") reauthenticate_token ;;
         "❓ Help") show_help ;;
-        "❌ Exit") echo -e "${YELLOW}👋 Bye!${NC}"; exit 0 ;;
-        *) echo -e "${RED}❗ Invalid selection.${NC}" ;;
+        "❌ Exit") echo -e "${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}{NC}"; exit 0 ;;
     esac
-    echo -e "${YELLOW}⏳ Returning to menu...${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     sleep 1
 done
