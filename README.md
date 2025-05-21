@@ -9,7 +9,7 @@
 
 ## 🚀 What is Git Genius?
 
-**Git Genius v3.7** is a powerful **Bash-based Terminal GUI** for GitHub actions on Android (**Termux** / **AndroidIDE**).  
+**Git Genius v4.3** is a powerful **Bash-based Terminal GUI** for GitHub actions on Android (**Termux** / **AndroidIDE**).  
 It simplifies your Git workflow with vibrant UI, emoji feedback, and blazing-fast command access — tailored for mobile devs, on-the-go coders, and terminal geeks.
 
 ---
@@ -76,12 +76,12 @@ It simplifies your Git workflow with vibrant UI, emoji feedback, and blazing-fas
 ## 🖼️ Preview
 
 <p align="center">
-  <img src="screenshots/1.png" width="800">
+  <img src="screenshots/Screenshot_1.jpg" width="800">
   <br><i>✨ Menu UI - Clean and beautiful</i>
 </p>
 
 <p align="center">
-  <img src="screenshots/2.png" width="800">
+  <img src="screenshots/Screenshot_2.jpg" width="800">
   <br><i>⚙ Settings menu - Fully editable values</i>
 </p>
 
