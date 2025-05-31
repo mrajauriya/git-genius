@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# Git Genius v4.6 – Developer-Focused GitHub CLI
+# Git Genius v4.6+ – Developer-Focused GitHub CLI
 
-CONFIG_FILE="$HOME/.gitquickconfig"
-TOKEN_FILE="$HOME/.git-token"
-BRANCH_FILE="$HOME/.git-branch"
-REMOTE_FILE="$HOME/.git-remote"
-VERSION="v4.6"
+GIT_DIR=".git"
+GENIUS_DIR="$GIT_DIR/.genius"
+CONFIG_FILE="$GENIUS_DIR/config"
+TOKEN_FILE="$GENIUS_DIR/token"
+BRANCH_FILE="$GENIUS_DIR/branch"
+REMOTE_FILE="$GENIUS_DIR/remote"
+VERSION="v4.6+"
 
 # Terminal colors
 GREEN="\033[1;32m"
@@ -17,13 +19,11 @@ BLUE="\033[1;34m"
 MAGENTA="\033[1;35m"
 NC="\033[0m"
 
-# Exit handler
 trap 'echo -e "\n${YELLOW}👋 Exiting Git Genius. Goodbye!${NC}"; exit 0' SIGINT
 
-# Ensure Git is installed
 ensure_git_installed() {
-    if ! command -v git &>/dev/null; then
-        echo -e "${RED}❌ Git is not installed!${NC}"
+    command -v git &>/dev/null || {
+        echo -e "${RED}❌ Git not installed!${NC}"
         echo -e "${YELLOW}📦 Installing Git...${NC}"
         if command -v pkg &>/dev/null; then
             pkg install git -y
@@ -33,10 +33,9 @@ ensure_git_installed() {
             echo -e "${RED}⚠ Unsupported package manager.${NC}"
             exit 1
         fi
-    fi
+    }
 }
 
-# Internet check
 check_internet() {
     curl -s https://github.com &>/dev/null || {
         echo -e "${RED}❌ No internet connection!${NC}"
@@ -44,7 +43,6 @@ check_internet() {
     }
 }
 
-# Show welcome header
 show_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo -e "  ${CYAN}✨ GitHub CLI – Git Genius $VERSION ✨${BLUE}"
@@ -52,7 +50,10 @@ show_header() {
     echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# First-time config
+setup_genius_dir() {
+    mkdir -p "$GENIUS_DIR"
+}
+
 setup_config() {
     echo -e "${YELLOW}⚙ First-time Setup:${NC}"
     read -p "🧑 Username: " GITHUB_USER
@@ -66,16 +67,17 @@ setup_config() {
     read -s TOKEN
     echo "$TOKEN" > "$TOKEN_FILE"
     chmod 600 "$TOKEN_FILE"
-    echo -e "${GREEN}✔ Token saved.${NC}"
+    echo -e "${GREEN}✔ Token saved for this repo.${NC}"
 }
 
-# Validate if in Git repo & match folder name v4.6 updated
 validate_git_repo_directory() {
     if [ ! -d .git ]; then
         echo -e "${RED}❌ Not a Git repository!${NC}"
-        echo -e "${YELLOW}💡 Initialize it with 'git init' or clone a repo.${NC}"
+        echo -e "${YELLOW}💡 Use 'git init' or clone a repo.${NC}"
         exit 1
     fi
+
+    [ ! -d "$GENIUS_DIR" ] && setup_genius_dir
 
     if [ -f "$REMOTE_FILE" ]; then
         CONFIGURED_REMOTE=$(cat "$REMOTE_FILE")
@@ -84,24 +86,23 @@ validate_git_repo_directory() {
         CURRENT_DIR_NAME=$(basename "$PWD")
 
         if [[ "$CONFIGURED_REMOTE" != "$ACTUAL_REMOTE" ]]; then
-            echo -e "${RED}⚠ Remote mismatch detected!${NC}"
-            echo -e "${CYAN}🔗 Expected: $CONFIGURED_REMOTE"
-            echo -e "🧭 Found:    $ACTUAL_REMOTE${NC}"
-            echo -e "${YELLOW}💡 Redirecting to Settings to fix it...${NC}"
-            sleep 2
+            echo -e "${RED}⚠ Remote mismatch!${NC}"
+            echo -e "${CYAN}Expected: $CONFIGURED_REMOTE"
+            echo -e "Found:    $ACTUAL_REMOTE${NC}"
+            echo -e "${YELLOW}💡 Redirecting to Settings...${NC}"
+            sleep 1
             settings_menu
         elif [[ "$CURRENT_DIR_NAME" != "$REPO_NAME" ]]; then
-            echo -e "${RED}⚠ Folder name mismatch detected!${NC}"
-            echo -e "${CYAN}📁 Expected folder: $REPO_NAME"
-            echo -e "📂 Current folder:  $CURRENT_DIR_NAME${NC}"
-            echo -e "${YELLOW}💡 Redirecting to Settings to update remote or rename folder...${NC}"
-            sleep 2
+            echo -e "${RED}⚠ Folder name mismatch!${NC}"
+            echo -e "${CYAN}Expected: $REPO_NAME"
+            echo -e "Found:    $CURRENT_DIR_NAME${NC}"
+            echo -e "${YELLOW}💡 Fix it manually or update remote.${NC}"
+            sleep 1
             settings_menu
         fi
     fi
 }
 
-# Load and initialize settings
 initialize_git_settings() {
     [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
     username=${username:-$(git config user.name)}
@@ -112,48 +113,30 @@ initialize_git_settings() {
     REMOTE_URL=$(cat "$REMOTE_FILE" 2>/dev/null)
 
     [ -z "$BRANCH" ] && {
-        DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}')
-        BRANCH=${DEFAULT_BRANCH:-main}
+        BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}')
+        BRANCH=${BRANCH:-main}
         echo "$BRANCH" > "$BRANCH_FILE"
     }
 
     git config --global --add safe.directory "$(pwd)"
 
-    [ -z "$REMOTE_URL" ] && {
+    if [ -z "$REMOTE_URL" ]; then
         read -p "🔗 GitHub repo URL (https://github.com/user/repo.git): " REMOTE_URL
         git remote add origin "$REMOTE_URL" 2>/dev/null || git remote set-url origin "$REMOTE_URL"
         echo "$REMOTE_URL" > "$REMOTE_FILE"
-    }
+    fi
 
     AUTH_REMOTE=$(echo "$REMOTE_URL" | sed "s|https://|https://$username:$TOKEN@|")
 }
 
-# Operation options
-OPTIONS=(
-    "🔼 Push Changes" "🔽 Pull Latest" "🔍 View Status"
-    "📝 View Log" "🧾 View Diff" "🌿 Switch/Create Branch"
-    "📦 Generate .gitignore" "👀 View File History"
-    "🔗 Show Remote URL" "⚙ Settings"
-    "🔐 Reauthenticate" "❓ Help" "❌ Exit"
-)
-
-# Menu UI
 show_menu() {
     echo -e "\n${CYAN}🚀 Choose operation:${NC}"
-    for i in "${!OPTIONS[@]}"; do
-        echo "  [$((i + 1))] ${OPTIONS[$i]}"
-    done
+    OPTIONS=("🔼 Push Changes" "🔽 Pull Latest" "🔍 View Status" "📝 View Log" "🧾 View Diff" "🌿 Switch/Create Branch" "📦 Generate .gitignore" "👀 View File History" "🔗 Show Remote URL" "⚙ Settings" "🔐 Reauthenticate" "❓ Help" "❌ Exit")
+    for i in "${!OPTIONS[@]}"; do echo "  [$((i+1))] ${OPTIONS[$i]}"; done
     read -p "👉 Your choice (1-${#OPTIONS[@]}): " CHOICE
-    if [[ "$CHOICE" =~ ^[0-9]+$ && "$CHOICE" -ge 1 && "$CHOICE" -le ${#OPTIONS[@]} ]]; then
-        OPERATION="${OPTIONS[$((CHOICE - 1))]}"
-    else
-        echo -e "${RED}❗ Invalid choice.${NC}"
-        sleep 1
-        show_menu
-    fi
+    OPERATION="${OPTIONS[$((CHOICE - 1))]}"
 }
 
-# Settings UI
 settings_menu() {
     echo -e "${MAGENTA}⚙ Settings:${NC}"
     echo "  [1] ✏️  Change Username & Email"
@@ -188,7 +171,6 @@ settings_menu() {
     esac
 }
 
-# Help UI
 show_help() {
     echo -e "${MAGENTA}❓ Help Menu:${NC}"
     echo -e "${GREEN}Push:${NC} Commit and push changes"
@@ -200,23 +182,22 @@ show_help() {
     echo -e "${GREEN}Settings:${NC} Change token, email, URL"
 }
 
-# Token refresh
 reauthenticate_token() {
-    echo -e "${CYAN}🔐 Re-enter your GitHub Token:${NC}"
+    echo -e "${CYAN}🔐 Re-enter GitHub Token:${NC}"
     read -s NEW_TOKEN
     echo "$NEW_TOKEN" > "$TOKEN_FILE"
     chmod 600 "$TOKEN_FILE"
     echo -e "${GREEN}✔ Token updated.${NC}"
 }
 
-# --- Startup Flow ---
+# --- Main Execution Flow ---
 
 show_header
-echo -e "${YELLOW}⚡ Checking prerequisites...${NC}"
 ensure_git_installed
 check_internet
-[ ! -f "$CONFIG_FILE" ] && setup_config
 validate_git_repo_directory
+setup_genius_dir
+[ ! -f "$CONFIG_FILE" ] && setup_config
 initialize_git_settings
 
 LAST_COMMIT=$(git log -1 --pretty=format:"%h - %s by %an")
@@ -227,9 +208,7 @@ while true; do
     case "$OPERATION" in
         "🔼 Push Changes")
             git add .
-            git diff --cached --quiet && git diff --quiet && {
-                echo -e "${YELLOW}⚠ Nothing to commit.${NC}"
-            } || {
+            git diff --cached --quiet && git diff --quiet && echo -e "${YELLOW}⚠ Nothing to commit.${NC}" || {
                 git status -s
                 read -p "✏️  Commit message: " MSG
                 git commit -m "$MSG"
@@ -255,15 +234,14 @@ while true; do
         "📦 Generate .gitignore")
             [ -f .gitignore ] && cp .gitignore .gitignore.bak
             cat > .gitignore <<EOF
-# IntelliJ
-*.iml
-.idea/
-*.ipr
-*.iws
-
-# Gradle
-.gradle/
+# Build
 build/
+.gradle/
+*.apk
+
+# IDE
+.idea/
+*.iml
 
 # System
 .DS_Store
