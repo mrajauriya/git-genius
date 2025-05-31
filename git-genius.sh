@@ -69,7 +69,7 @@ setup_config() {
     echo -e "${GREEN}✔ Token saved.${NC}"
 }
 
-# Validate if in Git repo & match folder name v4.6
+# Validate if in Git repo & match folder name v4.6 updated
 validate_git_repo_directory() {
     if [ ! -d .git ]; then
         echo -e "${RED}❌ Not a Git repository!${NC}"
